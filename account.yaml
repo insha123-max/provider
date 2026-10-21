@@ -1,0 +1,102 @@
+openapi: 3.0.3
+info:
+  title: Account API
+  version: 1.5.0
+  description: Account provider. Adds statements in 1.5; account closing was removed in 1.4.
+servers:
+  - url: https://api.bank.example/accounts
+security:
+  - bearerAuth: []
+tags:
+  - name: accounts
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  parameters:
+    AccountId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    Account:
+      type: object
+      required: [id, owner]
+      properties:
+        id:
+          type: string
+        owner:
+          type: string
+        balance:
+          type: number
+    Statement:
+      type: object
+      properties:
+        month:
+          type: string
+        closing_balance:
+          type: number
+paths:
+  /accounts:
+    get:
+      operationId: listAccounts
+      tags: [accounts]
+      responses:
+        '200':
+          description: All accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+    post:
+      operationId: createAccount
+      tags: [accounts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        '201':
+          description: Created
+  /accounts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/AccountId'
+    get:
+      operationId: getAccount
+      tags: [accounts]
+      responses:
+        '200':
+          description: One account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '404':
+          description: No such account
+  /accounts/{id}/statements:
+    parameters:
+      - $ref: '#/components/parameters/AccountId'
+    get:
+      operationId: listStatements
+      tags: [accounts]
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statements for one account
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Statement'
